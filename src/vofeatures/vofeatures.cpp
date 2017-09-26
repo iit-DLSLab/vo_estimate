@@ -13,10 +13,10 @@ VoFeatures::VoFeatures(boost::shared_ptr<lcm::LCM> &lcm_, int image_width_, int 
   // mfallon:
   pc_vis_ = new pronto_vis( lcm_->getUnderlyingLCM() );
   float colors_g[] ={0.0,1.0,0.0};
-  vector <float> colors_v_g;
+  std::vector <float> colors_v_g;
   colors_v_g.assign(colors_g,colors_g+4*sizeof(float));
   float colors_b[] ={0.0,0.0,1.0};
-  vector <float> colors_v_b;
+  std::vector <float> colors_v_b;
   colors_v_b.assign(colors_b,colors_b+4*sizeof(float));
   int reset =1;
   
@@ -237,7 +237,7 @@ void VoFeatures::writeFeatures(std::vector<ImageFeature> features, int counter, 
   ss << buff << "_" << utime;
 
   std::fstream feat_file;
-  string fname = string(  ss.str() + ".feat");
+  std::string fname = std::string(  ss.str() + ".feat");
   feat_file.open(  fname.c_str() , std::fstream::out);
 //  cout << "nmatches written to file: "<< features.size() << " @ " << utime_ << "\n";
   feat_file << "#i,track_id,uv,base_uv,uvd,xyz,xyzw,color\n";
