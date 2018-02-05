@@ -1,9 +1,12 @@
 add_definitions(-Wall )
 
+find_package(OpenCV REQUIRED COMPONENTS core imgcodecs)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 add_library(vofeatures SHARED vofeatures.cpp )
 pods_use_pkg_config_packages(vofeatures eigen3 
-      libfovis   pronto_vis lcmtypes_bot2-core
-      opencv)
+      libfovis   pronto_vis lcmtypes_bot2-core)
+target_link_libraries(vofeatures ${OpenCV_LIBRARIES})
 
 set_target_properties(vofeatures PROPERTIES SOVERSION 1)
 pods_install_libraries(vofeatures)
