@@ -71,6 +71,7 @@ class StereoOdom{
 
     boost::shared_ptr<lcm::LCM> lcm_recv_;
     boost::shared_ptr<lcm::LCM> lcm_pub_;
+    lcm::LCM lcm_pub_out_; // lcm to publish outside this machine
     BotParam* botparam_;
     BotFrames* botframes_;
     bot::frames* botframes_cpp_;
@@ -139,7 +140,7 @@ class StereoOdom{
 };    
 
 StereoOdom::StereoOdom(boost::shared_ptr<lcm::LCM> &lcm_recv_, boost::shared_ptr<lcm::LCM> &lcm_pub_, const CommandLineConfig& cl_cfg_) : 
-       lcm_recv_(lcm_recv_), lcm_pub_(lcm_pub_), cl_cfg_(cl_cfg_), utime_cur_(0), utime_prev_(0), 
+       lcm_recv_(lcm_recv_), lcm_pub_(lcm_pub_), lcm_pub_out_("udpm://239.255.76.67:7667?ttl=1"), cl_cfg_(cl_cfg_), utime_cur_(0), utime_prev_(0),
        ref_utime_(0), changed_ref_frames_(false)
 {
   if (cl_cfg_.param_file.empty()) {
@@ -407,7 +408,8 @@ void StereoOdom::updateMotion(int64_t utime, int64_t prev_utime){
           delta_camera_cov, "VO_DELTA_BODY" );  
   // 5b. output the per-keyframe delta for the last period
   fovis::update_t update_msg = vo_->get_delta_translation_msg(delta_body_from_ref, delta_camera_cov, utime, deltaroot_utime_);
-  lcm_pub_->publish("VO_DELTA_BODY_SINCE_REF", &update_msg);
+  // this is the bare minimum for the state estimator to work
+  lcm_pub_out_->publish("VO_DELTA_BODY_SINCE_REF", &update_msg);
 
 
   if (1==0){
@@ -783,8 +785,12 @@ int main(int argc, char **argv){
 
   //
   bool running_from_log = !cl_cfg.in_log_fname.empty();
+  std::string lcm_local_url = "udpm://239.255.76.67:7667?ttl=0";
+  std::string lcm_url = "udpm://239.255.76.67:7667?ttl=1";
+
   boost::shared_ptr<lcm::LCM> lcm_recv;
   boost::shared_ptr<lcm::LCM> lcm_pub;
+  boost::shared_ptr<lcm::LCM> lcm_pub_local(new lcm::LCM(lcm_local_url));
   if (running_from_log) {
     printf("running from log file: %s\n", cl_cfg.in_log_fname.c_str());
     //std::string lcmurl = "file://" + in_log_fname + "?speed=0";
@@ -798,10 +804,10 @@ int main(int argc, char **argv){
     }
   }
   else {
-    lcm_recv = boost::shared_ptr<lcm::LCM>(new lcm::LCM);
+    lcm_recv = boost::shared_ptr<lcm::LCM>(new lcm::LCM(lcm_url));
   }
-  lcm_pub = boost::shared_ptr<lcm::LCM>(new lcm::LCM);
+  lcm_pub = boost::shared_ptr<lcm::LCM>(new lcm::LCM(lcm_url));
 
-  StereoOdom fo= StereoOdom(lcm_recv, lcm_pub, cl_cfg);
+  StereoOdom fo= StereoOdom(lcm_recv, lcm_pub_local, cl_cfg);
   while(0 == lcm_recv->handle());
 }
