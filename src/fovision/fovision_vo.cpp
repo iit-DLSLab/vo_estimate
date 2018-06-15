@@ -409,7 +409,7 @@ void StereoOdom::updateMotion(int64_t utime, int64_t prev_utime){
   // 5b. output the per-keyframe delta for the last period
   fovis::update_t update_msg = vo_->get_delta_translation_msg(delta_body_from_ref, delta_camera_cov, utime, deltaroot_utime_);
   // this is the bare minimum for the state estimator to work
-  lcm_pub_out_->publish("VO_DELTA_BODY_SINCE_REF", &update_msg);
+  lcm_pub_out_.publish("VO_DELTA_BODY_SINCE_REF", &update_msg);
 
 
   if (1==0){
